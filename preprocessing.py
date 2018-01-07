@@ -76,9 +76,15 @@ def pos_emoji(words):
     return [Word(w.word, 'emo') if bool(re.match(r'_#+_', w.word)) else w for w in words]
 
 
-def strip_emoji(words):
-    return [Word(w.word.replace(' ', ''), w.pos) if w.pos == 'emo' else w for w in words]
+def recover_emoji(words, emoji_dict, pos):
+    if pos:
+        return [Word(emoji_dict[w.word], w.pos) if bool(re.match(r'_#+_', w.word)) else w for w in words]
+    else:
+        return [emoji_dict[w] if bool(re.match(r'_#+_', w)) else w for w in words]
 
 
-def recover_emoji(words, emoji_dict):
-    return [Word(emoji_dict[w.word], w.pos) if bool(re.match(r'_#+_', w.word)) else w for w in words]
+def strip_emoji(words, pos):
+    if pos:
+        return [Word(w.word.replace(' ', ''), w.pos) if w.pos == 'emo' else w for w in words]
+    else:
+        return [w.replace(' ', '') if w in EMOJIS else w for w in words]
