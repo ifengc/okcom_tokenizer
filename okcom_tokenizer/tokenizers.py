@@ -3,8 +3,8 @@ from toolz import pipe
 import jieba
 import jieba.posseg as pseg
 import opencc
-from preprocessing import Word
-from preprocessing import replace_emoji, to_halfwidth, strip_word, recover_emoji, pos_emoji, strip_emoji
+from .preprocessing import Word
+from .preprocessing import replace_emoji, to_halfwidth, strip_word, recover_emoji, pos_emoji, strip_emoji
 
 
 class TokenizerNotExistException(Exception):
