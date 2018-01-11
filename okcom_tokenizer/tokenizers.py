@@ -4,7 +4,7 @@ import jieba
 import jieba.posseg as pseg
 import opencc
 from .preprocessing import Word
-from .preprocessing import replace_emoji, to_halfwidth, strip_word, recover_emoji, pos_emoji, strip_emoji
+from .preprocessing import replace_emoji, to_halfwidth, strip_word, recover_emoji, pos_emoji, strip_emoji, contain_url, rm_repeat
 
 
 class TokenizerNotExistException(Exception):
@@ -60,16 +60,21 @@ class CCEmojiJieba(Tokenizer):
         self.tokenizer = OpenCCTokenizer(JiebaTokenizer())
 
     def cut(self, sentence, pos=True):
-        sentence, emoji_dict = replace_emoji(sentence.strip(), 'jieba')
-        words = pipe(sentence,
-                     str.lower,
-                     to_halfwidth,
-                     self.tokenizer.cut,
-                     strip_word,
-                     pos_emoji)
-        recovered = recover_emoji(words, emoji_dict, pos=pos)
-        strip_words = strip_emoji(recovered, pos=pos)
-        return strip_words
+        bool_url, matched = contain_url(sentence)
+        if bool_url:
+            return [Word(matched, 'url')]
+        else:
+            sentence = rm_repeat(sentence)
+            sentence, emoji_dict = replace_emoji(sentence.strip(), 'jieba')
+            words = pipe(sentence,
+                         str.lower,
+                         to_halfwidth,
+                         self.tokenizer.cut,
+                         strip_word,
+                         pos_emoji)
+            recovered = recover_emoji(words, emoji_dict, pos=pos)
+            strip_words = strip_emoji(recovered, pos=pos)
+            return strip_words
 
 
 class UniGram(Tokenizer):
@@ -87,11 +92,16 @@ class UniGram(Tokenizer):
         return l
 
     def cut(self, sentence, pos=False):
-        sentence, emoji_dict = replace_emoji(sentence.strip(), 'jieba')
-        tokens = pipe(sentence,
-                      str.lower,
-                      to_halfwidth,
-                      self._uni_cut)
-        recovered = recover_emoji(tokens, emoji_dict, pos=pos)
-        strip_tokens = strip_emoji(recovered, pos=pos)
-        return strip_tokens
+        bool_url, matched = contain_url(sentence)
+        if bool_url:
+            return [matched]
+        else:
+            sentence = rm_repeat(sentence)
+            sentence, emoji_dict = replace_emoji(sentence.strip(), 'jieba')
+            tokens = pipe(sentence,
+                          str.lower,
+                          to_halfwidth,
+                          self._uni_cut)
+            recovered = recover_emoji(tokens, emoji_dict, pos=pos)
+            strip_tokens = strip_emoji(recovered, pos=pos)
+            return strip_tokens
